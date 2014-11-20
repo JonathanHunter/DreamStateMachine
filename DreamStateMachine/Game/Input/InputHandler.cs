@@ -9,7 +9,11 @@ namespace DreamStateMachine.Input
 {
     class InputHandler
     {
+
+        public event EventHandler<EventArgs> pauseButtonPressed;
+
         public bool controller = false;
+        float pauseCoolDown = 0;
         KeyboardState keyBoardState;
         MouseState mouseState;
         GamePadState padState;
@@ -53,6 +57,19 @@ namespace DreamStateMachine.Input
 
             if (padState.IsButtonDown(Buttons.RightShoulder))
                 commands.Add(new PunchCommand());
+            if (padState.IsButtonDown(Buttons.X))
+                commands.Add(new UseCommand());
+            if (padState.IsButtonDown(Buttons.Y))
+                commands.Add(new RotateWeaponCommand());
+            if(padState.IsButtonDown(Buttons.Start))
+            {
+                if (pauseCoolDown <= 0)
+                {
+                    pauseButtonPressed(this, EventArgs.Empty);
+                    pauseCoolDown = .25f;
+                }
+            }
+
             return commands;
         }
 
@@ -80,16 +97,23 @@ namespace DreamStateMachine.Input
                 commands.Add(new PunchCommand());
             if (keyBoardState.IsKeyDown(Keys.E))
             {
-
                 commands.Add(new UseCommand());
             }
-            if (keyBoardState.IsKeyDown(Keys.G))
-            {
-                commands.Add(new DebugCommand());
-            }
+            //if (keyBoardState.IsKeyDown(Keys.G))
+            //{
+            //    commands.Add(new DebugCommand());
+            //}
             if (keyBoardState.IsKeyDown(Keys.Q))
             {
                 commands.Add(new RotateWeaponCommand());
+            }
+            if (keyBoardState.IsKeyDown(Keys.Escape))
+            {
+                if (pauseCoolDown <= 0)
+                {
+                    pauseButtonPressed(this, EventArgs.Empty);
+                    pauseCoolDown = .25f;
+                }
             }
 
             float curMousePosX = mouseState.X;
@@ -104,5 +128,12 @@ namespace DreamStateMachine.Input
             
             return commands;
         }
+
+        public void update(float dt)
+        {
+            if (pauseCoolDown > 0)
+                pauseCoolDown -= dt;
+        }
+
     }
 }
